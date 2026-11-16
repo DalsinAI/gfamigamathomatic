@@ -1,0 +1,10 @@
+# What this port builds on: fetched at build time, never shipped.
+# Mathomatic (LGPL 2.1) 16.0.5 by George Gesslein II, the last release,
+# kept on GitHub after his death (the commit adds only a read-only note)
+MATHO_GIT=https://github.com/mfillpot/mathomatic.git
+MATHO_COMMIT=6eb4cc1674c2aa30a514e850aa0663b7bbc060de
+MATHO_VERSION=16.0.5
+# Our own pieces, fetched at these commits
+# fpuauto (common/fpuauto): the FPU when there is one
+FPA_REPO=https://github.com/DalsinAI/amicradle-guest
+FPA_COMMIT=4a784c84b878fe0e9abade7006e67e1ded9b165c
