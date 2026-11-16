@@ -18,7 +18,7 @@ SRC="$WORK/mathomatic"
 matho_source "$SRC"
 B="$WORK/bin"; rm -rf "$B"; mkdir -p "$B"
 # shellcheck disable=SC2086
-(cd "$SRC" && $CC -O2 -w -DAMIGA=1 -DVERSION=\"$MATHO_VERSION\" -I"$HERE/amiga" \
+(cd "$SRC" && $CC -std=gnu99 -O2 -w -DAMIGA=1 -DVERSION=\"$MATHO_VERSION\" -I"$HERE/amiga" \
     $MATHO_SRCS "$HERE/amiga/amiga_matho.c" "$HERE/tests/host_system.c" -lm -o "$B/mathomatic")
 M="$B/mathomatic"
 fail=0

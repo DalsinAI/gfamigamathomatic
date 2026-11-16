@@ -58,7 +58,7 @@ LINK="m68k-amigaos-gcc -noixemul -m68040 -specs=$HERE/scripts/m68k-soft-m68040.s
 LATE=""
 if m68k-amigaos-gcc -fno-late-combine-instructions -S -o /dev/null -x c /dev/null 2>/dev/null; then LATE="-fno-late-combine-instructions"; fi
 # no loops turned into memset/memcpy calls (GCC 16), address 0 is memory
-CF="-noixemul -m68040 -O2 -fno-tree-loop-distribute-patterns -fno-delete-null-pointer-checks $LATE \
+CF="-std=gnu99 -noixemul -m68040 -O2 -fno-tree-loop-distribute-patterns -fno-delete-null-pointer-checks $LATE \
  -Werror=implicit-function-declaration -Werror=int-conversion -w \
  -DAMIGA=1 -DVERSION=\\\"$MATHO_VERSION\\\" -I$HERE/amiga -I$SRC \
  -DMATHO_AMIGA_VERSION=\\\"$MATHO_VERSION\\\" -DMATHO_AMIGA_DATE=\\\"$(date -u +%d.%m.%Y)\\\""
