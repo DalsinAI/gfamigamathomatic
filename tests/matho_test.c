@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <math.h>
 #include "amiga_matho.h"
 
 static int fails, checks;
@@ -49,6 +51,24 @@ int main(void)
 	checks++;
 	if (amiga_plot_script("/nonexistent-dir/x.plt", "", "plot", "x", "")) { fails++; printf("FAIL unwritable path reported written\n"); }
 
+	{	/* gamma against the C library's, and exact factorials */
+		double xs[] = { 0.5, 1.5, 2.5, 3.7, 10.25, 50.5, 120.3, 170.5, -0.5, -2.5, -7.3, 0.001 };
+		size_t k;
+		double worst = 0;
+		for (k = 0; k < sizeof(xs) / sizeof(xs[0]); k++) {
+			double want = tgamma(xs[k]), got = amiga_tgamma(xs[k]);
+			double rel = fabs(got - want) / fabs(want);
+			if (rel > worst) worst = rel;
+		}
+		checks++;
+		if (worst > 5e-13) { fails++; printf("FAIL gamma off by %g relative\n", worst); }
+		checks++;
+		if (amiga_tgamma(6.0) != 120.0 || amiga_tgamma(21.0) != 2432902008176640000.0) { fails++; printf("FAIL exact factorials\n"); }
+		errno = 0; checks++;
+		if (amiga_tgamma(200.0) != HUGE_VAL || errno != ERANGE) { fails++; printf("FAIL overflow\n"); }
+		errno = 0; checks++;
+		if (!isnan(amiga_tgamma(-3.0)) || errno != EDOM) { fails++; printf("FAIL pole\n"); }
+	}
 	printf("amiga_matho: %d of %d checks passed\n", checks - fails, checks);
 	return fails != 0;
 }

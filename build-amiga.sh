@@ -60,7 +60,7 @@ if m68k-amigaos-gcc -fno-late-combine-instructions -S -o /dev/null -x c /dev/nul
 # no loops turned into memset/memcpy calls (GCC 16), address 0 is memory
 CF="-std=gnu99 -noixemul -m68040 -O2 -fno-tree-loop-distribute-patterns -fno-delete-null-pointer-checks $LATE \
  -Werror=implicit-function-declaration -Werror=int-conversion -w \
- -DAMIGA=1 -DVERSION=\\\"$MATHO_VERSION\\\" -I$HERE/amiga -I$SRC \
+ -DAMIGA=1 -DUSE_TGAMMA=1 -Dtgamma=amiga_tgamma -DVERSION=\\\"$MATHO_VERSION\\\" -I$HERE/amiga -I$SRC \
  -DMATHO_AMIGA_VERSION=\\\"$MATHO_VERSION\\\" -DMATHO_AMIGA_DATE=\\\"$(date -u +%d.%m.%Y)\\\""
 O="$WORK/obj"
 # objects made against another Mathomatic or patch set go

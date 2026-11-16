@@ -22,4 +22,10 @@ int amiga_plot_script(const char *path, const char *prefix, const char *verb,
 /* Runs an AmigaDOS command line in the user's Shell, with this program's
  * input and output; its return code, or -1 when it can't be started. */
 int amiga_system(const char *cmd);
+
+/* Gamma for the factorial (libnix has no tgamma or lgamma): exact products
+ * for whole numbers up to 171, Lanczos (g=7) otherwise, reflection below
+ * 1/2; errno ERANGE on overflow, EDOM at poles. Built in place of
+ * tgamma() with -DUSE_TGAMMA -Dtgamma=amiga_tgamma. */
+double amiga_tgamma(double x);
 #endif

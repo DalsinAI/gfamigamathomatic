@@ -3,6 +3,6 @@ CC ?= cc
 test:
 	sh test-part.sh
 	mkdir -p ../build-host
-	$(CC) -Wall -Wextra -I../amiga -o ../build-host/matho_test matho_test.c ../amiga/amiga_matho.c && ../build-host/matho_test
+	$(CC) -Wall -Wextra -I../amiga -o ../build-host/matho_test matho_test.c ../amiga/amiga_matho.c -lm && ../build-host/matho_test
 	sh host-matho.sh
 .PHONY: test

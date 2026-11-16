@@ -39,7 +39,7 @@ card `quickrefcard.html`, and the manual page `mathomatic.1`).
 - `edit` uses the `EDITOR` variable, or `Ed`; its temporary file is
   `T:mathomatic.tmp`. `!command` runs an AmigaDOS command in your Shell
   (through `SystemTags()`); `!` alone opens a `NewShell`.
-- Not offered: the `-s level:seconds` time out (no `alarm()`), readline
+- Built as gnu99 (Mathomatic is K&R C). Not offered: the `-s level:seconds` time out (no `alarm()`), readline
   history. Screen size is upstream's 80 by 24 default (`set columns`,
   `set rows` change it).
 - 256 KB of stack is set in the program, so the Shell's 4 KB is enough.
@@ -76,6 +76,9 @@ sources with `AMIGA=1` (no UNIX: no `ioctl`, `alarm` or readline) and
   `help.c` (`NewShell`, `amiga_system()`).
 - `amiga/amiga_matho.c`: the startup file name and the plot script (plain C,
   tested on the PC).
+- `amiga/amiga_matho.c` also has `amiga_tgamma()` for `!` (libnix has no
+  `tgamma` or `lgamma`): exact products for whole numbers, Lanczos
+  otherwise, checked against the C library's on the PC.
 - `amiga/amiga_sys.c`: stack, `$VER`, `amiga_system()` on `SystemTags()`.
 
 Mathomatic is LGPL 2.1 (`SYS:Docs/Mathomatic/COPYING`); this port's own
