@@ -1,0 +1,156 @@
+diff --git a/am.c b/am.c
+index a08797d..9f08666 100644
+--- a/am.c
++++ b/am.c
+@@ -1582,10 +1582,16 @@ FILE	*ofp;	/* if non-NULL, display each line as read in to this file */
+ 	int	rv = true;
+ 
+ 	cp = getenv("HOME");
++#if	AMIGA
++	/* HOME (an AmigaDOS path) when set, else ENVARC:mathomatic.rc */
++	amiga_rc_path(cp, rc_file, sizeof(rc_file));
++	fp = fopen(rc_file, "r");
++#else
+ 	if (cp) {
+ 		snprintf(rc_file, sizeof(rc_file), "%s/%s", cp, ".mathomaticrc");
+ 		fp = fopen(rc_file, "r");
+ 	}
++#endif
+ #if	CYGWIN || MINGW
+ 	if (fp == NULL && cp) {
+ 		snprintf(rc_file, sizeof(rc_file), "%s/%s", cp, "mathomatic.rc");
+diff --git a/cmds.c b/cmds.c
+index 22304b1..ba0c88a 100644
+--- a/cmds.c
++++ b/cmds.c
+@@ -167,6 +167,19 @@ char	*cp;	/* the command-line argument */
+ 			}
+ 		}
+ 	}
++#if	AMIGA
++	if (strchr(cl2, 'y') || strchr(cl1, 'y')) {
++		fprintf(gfp, _("Performing 3D surface plot...\n"));
++	} else {
++		fprintf(gfp, _("Performing 2D plot...\n"));
++	}
++	if (!amiga_plot_script(AMIGA_PLOT_FILE, plot_prefix, (strchr(cl2, 'y') || strchr(cl1, 'y')) ? "splot" : "plot", cl2, cl1)) {
++		perror(AMIGA_PLOT_FILE);
++		error(_("Can't write the gnuplot script."));
++		return false;
++	}
++	len = snprintf(cl, sizeof(cl), "gnuplot -persist %s", AMIGA_PLOT_FILE);
++#else
+ 	if (strchr(cl2, 'y') || strchr(cl1, 'y')) {
+ 		fprintf(gfp, _("Performing 3D surface plot...\n"));
+ #if	MINGW
+@@ -182,6 +195,7 @@ char	*cp;	/* the command-line argument */
+ 		len = snprintf(cl, sizeof(cl), "echo '%s; plot %s %s'|gnuplot -persist", plot_prefix, cl2, cl1);
+ #endif
+ 	}
++#endif
+ 	if (len >= sizeof(cl)) {
+ 		error(_("gnuplot command-line too long."));
+ 		return false;
+@@ -317,6 +331,9 @@ version_report(void)
+ #if	MINGW
+ 	fprintf(gfp, "MINGW ");
+ #endif
++#if	AMIGA
++	fprintf(gfp, "AMIGA ");
++#endif
+ #if	HANDHELD
+ 	fprintf(gfp, "HANDHELD ");
+ #endif
+@@ -4620,6 +4637,8 @@ edit_again:
+ 	if (cp1 == NULL) {
+ #if	CYGWIN || MINGW
+ 		cp1 = "notepad";
++#elif	AMIGA
++		cp1 = "Ed";
+ #else
+ 		cp1 = "nano";
+ #endif
+@@ -4651,7 +4670,7 @@ edit_cmd(cp)
+ char	*cp;
+ {
+ 	FILE	*fp;
+-#if	!MINGW
++#if	!MINGW && !AMIGA
+ 	int	fd;
+ #endif
+ 	int	rv;
+@@ -4668,8 +4687,12 @@ char	*cp;
+ 	}
+ 	clean_up();	/* end any redirection */
+ 	if (*cp == '\0') {
+-#if	MINGW
++#if	MINGW || AMIGA
++#if	AMIGA
++		my_strlcpy(tmp_file, "T:mathomatic.tmp", sizeof(tmp_file));
++#else
+ 		my_strlcpy(tmp_file, "mathomatic.tmp", sizeof(tmp_file));
++#endif
+ 		fp = fopen(tmp_file, "w+");
+ 		if (fp == NULL) {
+ 			perror(tmp_file);
+diff --git a/help.c b/help.c
+index c9511e2..d54997e 100644
+--- a/help.c
++++ b/help.c
+@@ -609,6 +609,8 @@ char	*cp;
+ 		}
+ #if	MINGW
+ 		cp1 = "cmd";
++#elif	AMIGA
++		cp1 = "NewShell";
+ #else
+ 		cp1 = getenv("SHELL");
+ 		if (cp1 == NULL) {
+@@ -817,7 +819,11 @@ char	*cp;	/* shell command string */
+ 	reset_attr();
+ 
+ 	errno = 0;
++#if	AMIGA
++	rv = amiga_system(cp);
++#else
+ 	rv = system(cp);
++#endif
+ 	if (rv < 0) {
+ 		perror("system(3) call failed");
+ 	}
+diff --git a/includes.h b/includes.h
+index 2e5667a..9eb2b5c 100644
+--- a/includes.h
++++ b/includes.h
+@@ -57,7 +57,7 @@ George Gesslein II, P.O. Box 224, Lansing, NY  14882-0224  USA.
+ #undef	UNIX		/* Unix desktop functionality is slightly different for CYGWIN and MINGW */
+ #endif
+ 
+-#if	(UNIX || CYGWIN || MINGW) && !SECURE && !LIBRARY
++#if	(UNIX || CYGWIN || MINGW || AMIGA) && !SECURE && !LIBRARY
+ #define SHELL_OUT	1	/* include the code to shell out (run system(3) commmand) */
+ #endif
+ 
+@@ -73,6 +73,9 @@ George Gesslein II, P.O. Box 224, Lansing, NY  14882-0224  USA.
+ #if	UNIX
+ #include <libgen.h>
+ #endif
++#if	AMIGA
++#include "amiga_matho.h"	/* AmigaDOS: startup file, plot script, SystemTags() */
++#endif
+ 
+ #if	sun
+ #include <ieeefp.h>
+diff --git a/main.c b/main.c
+index 8d2fe5e..19f55da 100644
+--- a/main.c
++++ b/main.c
+@@ -445,7 +445,7 @@ unsigned int	time_out_seconds;
+ 	if (signal(SIGALRM, alarmhandler) == SIG_ERR)
+ 		rv = SIGALRM;
+ #endif
+-#if	!MINGW
++#if	!MINGW && !AMIGA
+ 	if (time_out_seconds > 0) {
+ 		alarm(time_out_seconds);
+ #if	TIMEOUT_SECONDS
